@@ -16,8 +16,22 @@ A lightweight terminal music player for YouTube songs, built with Go.
 - [Beep](https://github.com/gopxl/beep) - Audio playback
 - [kkdai/youtube](https://github.com/kkdai/youtube) - Video downloader
 
-## Installation
+## Configuration
 
+### YouTube Data API v3
+
+TuMusic uses the YouTube Data API to search for songs. You need to create an API key:
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable **YouTube Data API v3**
+4. Create credentials → **API Key**
+5. Create a `.env` file in the root of the project:
+```env
+YOUTUBE_API_KEY = your_api_key_here
+```
+
+## Installation
 ### 1. Install ffmpeg
 
 **Windows:**
