@@ -1,5 +1,4 @@
 .env
 songs
 tumusic.exe
-tumusic
-songs/*
+sign.bat
