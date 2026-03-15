@@ -3,7 +3,7 @@ package getdownloadedsongs
 import "fmt"
 
 func (m EmbedGetDownloadedSongs) View() string {
-	header := "TuMusic - Listen your favorite songs without waste resources\n"
+	header := "TuMusic - Listen your favorite songs without wasting resources\n"
 	for i, song := range m.SongsFound {
 		cursor := " "
 		if m.Cursor == i {

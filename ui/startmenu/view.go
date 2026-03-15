@@ -5,7 +5,7 @@ import (
 )
 
 func (m EmbedingStartMenu) View() string {
-	header := "TuMusic - Listen your favorite songs without waste resources\n"
+	header := "TuMusic - Listen your favorite songs without  resources\n"
 	for i, choice := range m.Choices {
 		cursor := " "
 		if m.Cursor == i {

@@ -6,7 +6,7 @@ import (
 )
 
 func (m EmbedPlayer) View() string {
-	header := "TuMusic - Listen your favorite songs without waste resources\n"
+	header := "TuMusic - Listen your favorite songs without wasting resources\n"
 	if m.Player.Title != "" {
 		header += fmt.Sprintf("Listening: %s\n", m.Player.Title)
 	}
