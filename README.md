@@ -67,7 +67,7 @@ go build -o tumusic.exe .
 1. Select **Add song** to search and download a song
 2. Select **Play songs** to browse your downloaded songs
 3. Use arrow keys to navigate and `Enter` to select
-4. Use **Pause/Resume** to control playback
+4. Use **Pause/Resume** or **Stop** to control playback
 5. Press `Esc` to go back, `Ctrl+C` to exit
 
 ## License
