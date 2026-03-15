@@ -5,7 +5,7 @@ import (
 )
 
 func (m EmbedingStartMenu) View() string {
-	header := "TuMusic - Listen your favorite songs without  resources\n"
+	header := "TuMusic - Listen your favorite songs without wasting resources\n"
 	for i, choice := range m.Choices {
 		cursor := " "
 		if m.Cursor == i {
@@ -13,6 +13,6 @@ func (m EmbedingStartMenu) View() string {
 		}
 		header += fmt.Sprintf("%s %s\n", cursor, choice)
 	}
-	header += "\nPress ctrl+c to exit\n"
+	header += "\nPress ctrl+c to exit or esc to return\n"
 	return header
 }

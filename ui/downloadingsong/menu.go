@@ -5,5 +5,7 @@ type EmbedDownloadingSong struct {
 }
 
 func DownloadingSongMenu() EmbedDownloadingSong {
-	return EmbedDownloadingSong{}
+	return EmbedDownloadingSong{
+		Url: "",
+	}
 }

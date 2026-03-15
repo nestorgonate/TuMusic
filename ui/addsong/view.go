@@ -13,6 +13,6 @@ func (m EmbedingAddSongMenu) View() string {
 		}
 		header += fmt.Sprintf("%s Title: %s - Uploaded by: %s\n", cursor, song.Title, song.Channel)
 	}
-	header += "\nPress ctrl+c to exit\n"
+	header += "\nPress ctrl+c to exit or esc to return\n"
 	return header
 }

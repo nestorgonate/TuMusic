@@ -11,6 +11,6 @@ func (m EmbedGetDownloadedSongs) View() string {
 		}
 		header += fmt.Sprintf("%s %s\n", cursor, song.Title)
 	}
-	header += "\nPress ctrl+c to exit\n"
+	header += "\nPress ctrl+c to exit or esc to return\n"
 	return header
 }

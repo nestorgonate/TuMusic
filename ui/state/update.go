@@ -2,7 +2,6 @@ package state
 
 import (
 	"fmt"
-	"log"
 	"tumusic/models"
 	"tumusic/playsong"
 	"tumusic/ui/addsong"
@@ -26,18 +25,17 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.state = menuView
 		return m, nil
 	case models.ErrorMessage:
-		// Imprime el error para saber qué falló
 		fmt.Println("Error:", msg.Err)
 		m.state = menuView
 		return m, nil
 	case models.StopMsg:
-		log.Print("StopMsg recibido")
-		m.state = menuView
-		return m, nil
+		m.playingSongMenu = playingsong.PlayerMenu()
+		m.state = getDownloadedSongsView
+		return m, tea.ClearScreen
 	case models.AudioStartedMsg:
-		newMenu, newCmd := m.playingSongMenu.Update(msg)
-		m.playingSongMenu = newMenu.(playingsong.EmbedPlayer)
-		return m, newCmd
+		m.playingSongMenu.Player.PlayerController = msg.PlayerController
+		m.playingSongMenu.Player.State = models.Play
+		return m, m.playingSongMenu.WatchingSongStopCmd()
 	}
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -46,43 +44,49 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if msg.String() == "enter" {
 				selected := m.startmenu.Choices[m.startmenu.Cursor]
 				if selected == "Add song" {
-					m.state = getSongTitleView // Cambia el estado
+					m.state = getSongTitleView
 					return m, textinput.Blink
 				}
 				if selected == "Play songs" {
 					m.getDownloadedSongsMenu.SongsFound, _ = playsong.GetSongs()
 					m.state = getDownloadedSongsView
-					return m, nil
+					return m, tea.ClearScreen
 				}
 			}
 		case getSongTitleView:
 			if msg.String() == "enter" {
 				m.addsongmenu.Input = m.getsongtitelmenu.TextInput.Value()
+				m.getsongtitelmenu = getsongtitle.GetSongTitleMenu()
 				m.state = addSongView
-				return m, m.addsongmenu.Init()
+				return m, tea.Batch(tea.ClearScreen, m.addsongmenu.Init())
 			}
 			if msg.String() == "esc" {
 				m.state = menuView
-				return m, nil
+				return m, tea.ClearScreen
 			}
 		case addSongView:
 			if msg.String() == "esc" {
+				m.addsongmenu = addsong.AddSongMenu()
 				m.state = menuView
-				return m, nil
+				return m, tea.ClearScreen
 			}
 			if msg.String() == "enter" {
 				cursor := m.addsongmenu.Cursor
 				if len(m.addsongmenu.Songs) > 0 {
 					selectedSong := m.addsongmenu.Songs[cursor]
 					m.downlaodingsongmenu.Url = selectedSong.Url
+					m.addsongmenu = addsong.AddSongMenu()
 					m.state = downloadingsongView
-					return m, m.downlaodingsongmenu.Init()
+					return m, tea.Batch(
+						tea.ClearScreen,
+						m.downlaodingsongmenu.Init(),
+					)
 				}
 			}
 		case getDownloadedSongsView:
 			if msg.String() == "esc" {
 				m.state = menuView
-				return m, nil
+				return m, tea.ClearScreen
 			}
 			if msg.String() == "enter" {
 				cursor := m.getDownloadedSongsMenu.Cursor
@@ -91,6 +95,7 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.playingSongMenu.PathSong = selectedSong.PathSong
 				m.state = playingsongView
 				return m, tea.Batch(
+					tea.ClearScreen,
 					m.playingSongMenu.Init(),
 					m.playingSongMenu.PlaySongCmd(),
 				)
@@ -98,18 +103,14 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case playingsongView:
 			if msg.String() == "esc" {
 				if m.playingSongMenu.Player.PlayerController != nil {
-					speaker.Lock()
-					speaker.Clear()
-					speaker.Unlock()
 					_ = m.playingSongMenu.Player.PlayerController.Streamer.Close()
+					speaker.Clear()
 					m.playingSongMenu.Player.PlayerController = nil
 				}
-				m.state = menuView
-				return m, nil
+				m.playingSongMenu = playingsong.PlayerMenu()
+				m.state = getDownloadedSongsView
+				return m, tea.ClearScreen
 			}
-			newMenu, newCmd := m.playingSongMenu.Update(msg)
-			m.playingSongMenu = newMenu.(playingsong.EmbedPlayer)
-			return m, newCmd
 		}
 	}
 
@@ -134,6 +135,10 @@ func (m mainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		newMenu, newCmd := m.getDownloadedSongsMenu.Update(msg)
 		m.getDownloadedSongsMenu = newMenu.(getdownloadedsongs.EmbedGetDownloadedSongs)
 		cmd = newCmd
+	case playingsongView:
+		newMenu, newCmd := m.playingSongMenu.Update(msg)
+		m.playingSongMenu = newMenu.(playingsong.EmbedPlayer)
+		return m, newCmd
 	}
 	return m, cmd
 }

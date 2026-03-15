@@ -7,5 +7,5 @@ import (
 )
 
 func (m EmbedDownloadingSong) Init() tea.Cmd {
-	return downloadsongs.DownloadCmd(m.Url)
+	return tea.Batch(downloadsongs.DownloadCmd(m.Url))
 }

@@ -33,6 +33,6 @@ func (m EmbedPlayer) View() string {
 			header += fmt.Sprintf("%s  [%s]\n", cursor, btn)
 		}
 	}
-	header += "\nPress ctrl+c to exit\n"
+	header += "\nPress ctrl+c to exit or esc to return\n"
 	return header
 }

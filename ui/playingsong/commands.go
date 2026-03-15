@@ -18,3 +18,10 @@ func (m *EmbedPlayer) PlaySongCmd() tea.Cmd {
 		return models.AudioStartedMsg{PlayerController: controller}
 	}
 }
+
+func (m *EmbedPlayer) WatchingSongStopCmd() tea.Cmd{
+	return func() tea.Msg{
+		<-m.Player.PlayerController.Done
+		return models.StopMsg{}
+	}
+}

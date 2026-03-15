@@ -17,19 +17,20 @@ type EmbedPlayerController struct {
 }
 
 var format = beep.Format{
-		SampleRate:  44100,
-		NumChannels: 2,
-		Precision:   2,
-	}
+	SampleRate:  44100,
+	NumChannels: 2,
+	Precision:   2,
+}
 
-func InitSpeaker() error{
+func InitSpeaker() error {
 	return speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/2))
 }
 
-func PlaySong(pathSong string) (models.PlayerController, error) {
+func PlaySong(pathSong string) (*models.PlayerController, error) {
 	absPath, err := filepath.Abs(pathSong)
+	done := make(chan struct{})
 	if err != nil {
-		return models.PlayerController{}, fmt.Errorf("filepath abs: %w", err)
+		return &models.PlayerController{}, fmt.Errorf("filepath abs: %w", err)
 	}
 
 	cmd := exec.Command("ffmpeg", "-i", absPath, "-acodec", "pcm_s16le", "-f", "wav", "pipe:1")
@@ -37,16 +38,16 @@ func PlaySong(pathSong string) (models.PlayerController, error) {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return models.PlayerController{}, fmt.Errorf("stdout pipe: %w", err)
+		return &models.PlayerController{}, fmt.Errorf("stdout pipe: %w", err)
 	}
 	if err = cmd.Start(); err != nil {
-		return models.PlayerController{}, fmt.Errorf("ffmpeg start: %w", err)
+		return &models.PlayerController{}, fmt.Errorf("ffmpeg start: %w", err)
 	}
 
 	wavData, err := io.ReadAll(stdout)
 	cmd.Wait()
 	if err != nil {
-		return models.PlayerController{}, fmt.Errorf("leer wav: %w", err)
+		return &models.PlayerController{}, fmt.Errorf("leer wav: %w", err)
 	}
 
 	pcmData := wavData[44:]
@@ -71,31 +72,22 @@ func PlaySong(pathSong string) (models.PlayerController, error) {
 	})
 
 	ctrl := &beep.Ctrl{Streamer: streamer, Paused: false}
-	speaker.Play(ctrl)
+	speaker.Play(beep.Seq(ctrl, beep.Callback(func() {
+		close(done)
+	})))
 
-	streamCloser := models.Closer{
-		Streamer: streamer,
-		Cleanup: func() error {
-			if cmd.Process != nil {
-				return cmd.Process.Kill()
-			}
-			return nil
+	return &models.PlayerController{
+		Ctrl: ctrl,
+		Streamer: models.Closer{ // Closer implementa StreamCloser porque tiene Close()
+			Streamer: streamer,
+			Cleanup: func() error {
+				if cmd.Process != nil {
+					return cmd.Process.Kill()
+				}
+				return nil
+			},
 		},
-	}
-
-	return models.PlayerController{
-		Ctrl:     ctrl,
-		Streamer: streamCloser,
-		Cmd:      cmd,
+		Cmd: cmd,
+		Done: done,
 	}, nil
 }
-
-func (m EmbedPlayerController) PauseSong() bool {
-	speaker.Lock()
-	m.Ctrl.Paused = !m.Ctrl.Paused
-	paused := m.Ctrl.Paused
-	speaker.Unlock()
-	return paused
-}
-
-
